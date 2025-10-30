@@ -54,8 +54,8 @@ A lightweight internal Task Scheduling Tool built with Laravel and Vue.js (Inert
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd deluxe-task
+git clone https://github.com/razinabrahamyan/deluxe.git
+cd deluxe
 ```
 
 2. Copy environment file:
