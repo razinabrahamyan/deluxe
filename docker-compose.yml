@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: deluxe-task-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - deluxe-task-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.php-fpm
+    container_name: deluxe-task-app
+    volumes:
+      - ./:/var/www
+    working_dir: /var/www
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - deluxe-task-network
+
+  php-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deluxe-task-cli
+    volumes:
+      - ./:/var/www
+    working_dir: /var/www
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - deluxe-task-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: deluxe-task-mysql
+    environment:
+      MYSQL_DATABASE: task_manager
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_PASSWORD: password
+      MYSQL_USER: taskuser
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - deluxe-task-network
+
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deluxe-task-reverb
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    depends_on:
+      - php-cli
+      - mysql
+    ports:
+      - "8080:8080"
+    networks:
+      - deluxe-task-network
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deluxe-task-queue
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    command: php artisan queue:work --verbose --tries=3 --timeout=90
+    depends_on:
+      - php-cli
+      - mysql
+    networks:
+      - deluxe-task-network
+
+networks:
+  deluxe-task-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+

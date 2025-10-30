@@ -1,0 +1,16 @@
+node_modules
+vendor
+.git
+.gitignore
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+README.md
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+*.md
+!.docker.env.example
+
